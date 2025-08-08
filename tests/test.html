@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日历应用测试套件</title>
+    <link rel="stylesheet" href="../styles.css">
+    <style>
+        body {
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+        .test-pass {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .test-fail {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .test-summary {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e7f3ff;
+            border: 1px solid #b8daff;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>日历应用测试套件</h1>
+        <p>测试周数计算、日期处理等功能</p>
+        
+        <div>
+            <button onclick="runAllTests()">运行所有测试</button>
+            <button onclick="runWeekTests()">测试周数计算</button>
+            <button onclick="runDateTests()">测试日期处理</button>
+            <button onclick="runResponsiveTests()">测试响应式</button>
+        </div>
+
+        <div id="testResults"></div>
+        
+        <div class="test-summary" id="testSummary" style="display: none;">
+            测试完成！
+        </div>
+    </div>
+
+    <script src="../calendar.js"></script>
+    <script src="test.js"></script>
+</body>
+</html>
