@@ -10,7 +10,7 @@ services:
       - "5003:80"
     restart: unless-stopped
     labels:
-      - "com.calendar-app.description=2024年日历应用"
+      - "com.calendar-app.description=当前年份日历应用"
       - "com.calendar-app.version=1.0.0"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/"]

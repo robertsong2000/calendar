@@ -3,30 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2024年日历 - 第几周查询</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>日历 · 第几周</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css?v=20260815-festivals">
 </head>
 <body>
+    <div class="atmosphere" aria-hidden="true"></div>
     <div class="container">
         <header>
-            <h1>2024年日历</h1>
+            <p class="eyebrow" id="appYearLabel">日历</p>
+            <h1 id="appTitle">日历</h1>
+            <p class="live-clock" id="liveClock" aria-live="polite"></p>
             <div class="controls">
-                <button id="prevMonth">上个月</button>
+                <button type="button" id="prevMonth" aria-label="上个月">‹</button>
                 <span id="currentMonthDisplay"></span>
-                <button id="nextMonth">下个月</button>
+                <button type="button" id="nextMonth" aria-label="下个月">›</button>
             </div>
+            <button type="button" id="todayBtn" class="today-jump">回到今天</button>
         </header>
 
         <div class="calendar-container">
             <div id="calendar"></div>
         </div>
 
+        <div class="legend" aria-hidden="true">
+            <span class="legend-item festival"><i></i>节日</span>
+            <span class="legend-item jieqi"><i></i>节气</span>
+            <span class="legend-item today-mark"><i></i>今天</span>
+        </div>
+
         <div class="info-panel">
             <h3>今日信息</h3>
             <p id="todayInfo"></p>
+            <div id="selectedDayInfo" class="selected-day" hidden></div>
         </div>
     </div>
 
-    <script src="calendar.js"></script>
+    <script src="lunar.min.js?v=1.7.7"></script>
+    <script src="calendar.js?v=20260815-festivals"></script>
 </body>
 </html>
