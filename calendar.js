@@ -7,6 +7,13 @@ class CalendarApp {
         this.selectedCell = null;
         this.clockTimer = null;
         this.cultureCache = new Map();
+        this.rbacEnabled = true;
+        this.selectedDate = null;
+        try {
+            this.rbacEnabled = localStorage.getItem('calendar.rbacEnabled') !== 'false';
+        } catch (err) {
+            // The calendar also works when browser storage is unavailable.
+        }
 
         // Keep the grid focused on Chinese festivals / public holidays
         this.ignoredFestivalPattern =
@@ -49,6 +56,20 @@ class CalendarApp {
     }
 
     bindEvents() {
+        const rbacToggle = document.getElementById('rbacToggle');
+        if (rbacToggle) {
+            rbacToggle.checked = this.rbacEnabled;
+            rbacToggle.addEventListener('change', () => {
+                this.rbacEnabled = rbacToggle.checked;
+                try {
+                    localStorage.setItem('calendar.rbacEnabled', String(this.rbacEnabled));
+                } catch (err) {
+                    // Keep the toggle usable without persistent storage.
+                }
+                this.renderCalendar();
+                this.updateTodayInfo();
+            });
+        }
         const prevBtn = document.getElementById('prevMonth');
         const nextBtn = document.getElementById('nextMonth');
         const todayBtn = document.getElementById('todayBtn');
@@ -268,6 +289,52 @@ class CalendarApp {
         return parts.join('<br>');
     }
 
+    getRbacInfo(date) {
+        const calendar = typeof RBAC_CALENDARS === 'undefined'
+            ? null : RBAC_CALENDARS[date.getFullYear()];
+        if (!calendar) {
+            return null;
+        }
+        const key = `${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        if (calendar.workingWeekends.includes(key)) {
+            return { type: 'makeup', badge: '班', description: '调休补班日', working: true };
+        }
+        const summer = calendar.summerHoliday;
+        if (key >= summer.start && key <= summer.end) {
+            return { type: 'summer', badge: '夏休', description: '公司额外假期 · 夏休', working: false };
+        }
+        const holiday = calendar.holidays.find(({ start, end }) => key >= start && key <= end);
+        if (holiday) {
+            return { type: 'rest', badge: '休', description: holiday.name, working: false };
+        }
+        if (date.getDay() === 0 || date.getDay() === 6) {
+            return { type: 'rest', badge: '休', description: '周末休息', working: false };
+        }
+        return { type: 'working', badge: '', description: '正常工作日', working: true };
+    }
+
+    getRbacMonthStats(year, month) {
+        let working = 0;
+        let summer = 0;
+        for (let day = 1; day <= this.getDaysInMonth(year, month); day++) {
+            const info = this.getRbacInfo(new Date(year, month, day));
+            if (!info) {
+                return null;
+            }
+            working += Number(info.working);
+            summer += Number(info.type === 'summer');
+        }
+        return { working, summer };
+    }
+
+    formatRbacSummary(date) {
+        if (!this.rbacEnabled) {
+            return '';
+        }
+        const info = this.getRbacInfo(date);
+        return info ? `RBAC 班休：${info.description}` : `暂无 ${date.getFullYear()} 年 RBAC 班休安排`;
+    }
+
     renderCalendar() {
         const calendarDiv = document.getElementById('calendar');
         calendarDiv.innerHTML = '';
@@ -279,6 +346,20 @@ class CalendarApp {
 
         document.getElementById('currentMonthDisplay').textContent =
             this.formatMonthYear(new Date(year, month));
+
+        const summary = document.getElementById('rbacMonthSummary');
+        if (summary) {
+            const stats = this.getRbacMonthStats(year, month);
+            summary.hidden = !this.rbacEnabled;
+            summary.textContent = stats
+                ? `${month + 1} 月工作日 ${stats.working} 天${stats.summer ? ` · 公司夏休 ${stats.summer} 天` : ''}`
+                : `暂无 ${year} 年 RBAC 班休安排`;
+            summary.title = stats ? '来源：2026 RBAC Working Calendar' : '';
+        }
+        const legend = document.getElementById('rbacLegend');
+        if (legend) {
+            legend.hidden = !this.rbacEnabled || !this.getRbacInfo(new Date(year, month, 1));
+        }
 
         const weekdayHeader = document.createElement('div');
         weekdayHeader.className = 'weekday-header';
@@ -317,6 +398,9 @@ class CalendarApp {
         }
 
         calendarDiv.appendChild(daysGrid);
+        if (this.selectedDate) {
+            this.showDayInfo(this.selectedDate, this.getWeekOfYear(this.selectedDate));
+        }
     }
 
     createCompactDayCell(year, month, day, isOtherMonth) {
@@ -328,6 +412,20 @@ class CalendarApp {
         }
 
         const currentDate = new Date(year, month, day);
+        dayCell.dataset.date = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
+        if (this.selectedDate && currentDate.getTime() === this.selectedDate.getTime()) {
+            dayCell.classList.add('selected');
+            this.selectedCell = dayCell;
+        }
+        const rbac = this.rbacEnabled ? this.getRbacInfo(currentDate) : null;
+        if (rbac && rbac.badge) {
+            const badge = document.createElement('span');
+            badge.className = `rbac-badge day-badge ${rbac.type}`;
+            badge.textContent = rbac.badge;
+            badge.title = `RBAC：${rbac.description}`;
+            dayCell.appendChild(badge);
+            dayCell.classList.add('has-rbac-badge');
+        }
         const today = new Date();
 
         if (currentDate.getDate() === today.getDate() &&
@@ -373,6 +471,9 @@ class CalendarApp {
             tipParts.push(`节气 ${culture.jieqi}`);
         }
         tipParts.push(`第${weekNumber}周`);
+        if (this.rbacEnabled) {
+            tipParts.push(this.formatRbacSummary(currentDate));
+        }
         dayCell.title = tipParts.filter(Boolean).join(' · ');
 
         dayCell.addEventListener('click', () => {
@@ -381,6 +482,7 @@ class CalendarApp {
             }
             dayCell.classList.add('selected');
             this.selectedCell = dayCell;
+            this.selectedDate = currentDate;
             this.showDayInfo(currentDate, weekNumber, culture);
         });
 
@@ -410,6 +512,7 @@ class CalendarApp {
             本年度 <strong>第 ${weekNumber} 周</strong>
             ${cultureSummary ? `<br>${cultureSummary}` : ''}
             ${jieqiNearby}
+            ${this.rbacEnabled ? `<br>${this.formatRbacSummary(date)}` : ''}
         `;
     }
 
@@ -435,10 +538,12 @@ class CalendarApp {
             本年度 <strong>第 ${weekNumber} 周</strong>，还剩 <strong>${daysLeft} 天</strong>
             ${cultureSummary ? `<br>${cultureSummary}` : ''}
             ${jieqiLine}
+            ${this.rbacEnabled ? `<br>${this.formatRbacSummary(today)}` : ''}
         `;
     }
 
     goToToday() {
+        this.selectedDate = null;
         const now = new Date();
         this.today = now;
         this.currentYear = now.getFullYear();

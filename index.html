@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=20260815-festivals">
+    <link rel="stylesheet" href="styles.css?v=20261113-rbac">
 </head>
 <body>
     <div class="atmosphere" aria-hidden="true"></div>
@@ -21,6 +21,11 @@
                 <span id="currentMonthDisplay"></span>
                 <button type="button" id="nextMonth" aria-label="下个月">›</button>
             </div>
+            <label class="rbac-toggle">
+                <input type="checkbox" id="rbacToggle" role="switch" checked>
+                <span>RBAC 班休</span>
+            </label>
+            <p id="rbacMonthSummary" class="rbac-summary" aria-live="polite"></p>
             <button type="button" id="todayBtn" class="today-jump">回到今天</button>
         </header>
 
@@ -34,6 +39,12 @@
             <span class="legend-item today-mark"><i></i>今天</span>
         </div>
 
+        <div id="rbacLegend" class="rbac-legend">
+            <span><b class="rbac-badge rest">休</b>休息 / 假期</span>
+            <span><b class="rbac-badge makeup">班</b>调休补班</span>
+            <span><b class="rbac-badge summer">夏休</b>公司额外假期</span>
+        </div>
+
         <div class="info-panel">
             <h3>今日信息</h3>
             <p id="todayInfo"></p>
@@ -42,6 +53,7 @@
     </div>
 
     <script src="lunar.min.js?v=1.7.7"></script>
-    <script src="calendar.js?v=20260815-festivals"></script>
+    <script src="rbac-2026.js?v=20261113"></script>
+    <script src="calendar.js?v=20261113-rbac"></script>
 </body>
 </html>
